@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { AnimatePresence, motion, useInView, useScroll, useSpring, useTransform } from 'framer-motion'
-import { profile, stats, skillGroups, projects, journeyTitle, journey } from './data'
+import { AnimatePresence, motion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { profile, skillGroups, projects, journeyTitle, journey } from './data'
 
 const ease = [0.22, 1, 0.36, 1] as const
 const tones = ['white', 'blue', 'orange']
@@ -20,29 +20,17 @@ function Img({ src, alt }: { src: string; alt: string }) {
   return ok ? <img src={src} alt={alt} loading="lazy" onError={() => setOk(false)} /> : null
 }
 
-function CountUp({ to }: { to: number }) {
-  const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true })
-  const [n, setN] = useState(0)
-  useEffect(() => {
-    if (!inView) return
-    let f = 0
-    const id = setInterval(() => { f++; setN(Math.round(to * Math.min(1, f / 30))); if (f >= 30) clearInterval(id) }, 30)
-    return () => clearInterval(id)
-  }, [inView, to])
-  return <span ref={ref}>{n}+</span>
-}
-
 function Head({ label, title }: { label: string; title: string }) {
   return (
     <Reveal className="head">
       <p className="label">{label}</p>
       <h2>{title}</h2>
+      <motion.i className="rule" initial={{ width: 0 }} whileInView={{ width: 72 }} viewport={{ once: true }} transition={{ duration: 0.9, delay: 0.3, ease }} />
     </Reveal>
   )
 }
 
-/* Horizontal portfolio section with navigation arrows*/
+/* Horizontal scrolling row with arrows */
 function Row({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   const go = (d: number) => ref.current?.scrollBy({ left: d * ref.current.clientWidth * 0.8, behavior: 'smooth' })
@@ -55,7 +43,7 @@ function Row({ children }: { children: ReactNode }) {
   )
 }
 
-const navLinks = [['home', 'Home'], ['story', 'Story'], ['skills', 'Skills'], ['projects', 'Projects'], ['journey', 'Journey'], ['resume', 'Resume']]
+const navLinks = [['home', 'Home'], ['story', 'About'], ['skills', 'Skills'], ['projects', 'Projects'], ['journey', 'Journey'], ['resume', 'Resume']]
 const navIds = [...navLinks.map((l) => l[0]), 'contact']
 
 function Nav() {
@@ -114,7 +102,8 @@ function Hero() {
         <h1>
           {profile.name.split(' ').map((w, i) => (
             <span className="mask" key={i}>
-              <motion.span initial={{ y: '110%' }} animate={{ y: 0 }} transition={{ duration: 0.9, delay: 0.2 + i * 0.12, ease }}>{w}</motion.span>
+              <motion.span initial={{ y: '110%', filter: 'blur(10px)' }} animate={{ y: 0, filter: 'blur(0px)' }}
+                transition={{ duration: 1, delay: 0.2 + i * 0.14, ease }}>{w}</motion.span>
             </span>
           ))}
         </h1>
@@ -131,7 +120,6 @@ function Hero() {
   )
 }
 
-
 function Explore() {
   const cards = [
     { id: 'story', ep: '01', title: 'About Me', pct: 100, tone: 'white' },
@@ -144,7 +132,7 @@ function Explore() {
       <h3 className="row-title">Explore My Portfolio</h3>
       <Row>
         {cards.map((c) => (
-          <a key={c.id} href={`#${c.id}`} className={`ex-card t-${c.tone}`}>
+          <a key={c.id} href={`#${c.id}`} className={`ex-card glow t-${c.tone}`}>
             <span className="ep">Section {c.ep}</span>
             <b>{c.title}</b>
             <i className="bar"><em style={{ width: `${c.pct}%` }} /></i>
@@ -155,17 +143,25 @@ function Explore() {
   )
 }
 
+/* Slowly scrolling strip of words */
+function Ticker() {
+  const items = [profile.role, ...profile.tags]
+  const row = [...items, ...items, ...items, ...items]
+  return (
+    <div className="ticker" aria-hidden="true">
+      <div>{row.map((t, i) => <span key={i}>{t}<b /></span>)}</div>
+    </div>
+  )
+}
 
 function Story() {
   return (
     <section id="story" className="section">
-      <Head label="ABOUT ME" title="The Full Story" />
-      <div className="story-grid">
-        <Reveal>{profile.about.map((p, i) => <p className="body" key={i}>{p}</p>)}</Reveal>
-        <Reveal delay={0.1} className="stats">
-          {stats.map((s) => <div key={s.label}><b><CountUp to={s.value} /></b><span>{s.label}</span></div>)}
-        </Reveal>
-      </div>
+      <Head label="About me" title="Who I Am" />
+      <Reveal className="story">
+        <p className="story-lead">{profile.about[0]}</p>
+        <div>{profile.about.slice(1).map((p, i) => <p className="body" key={i}>{p}</p>)}</div>
+      </Reveal>
     </section>
   )
 }
@@ -173,12 +169,17 @@ function Story() {
 function Skills() {
   return (
     <section id="skills" className="section">
-      <Head label="TECHNICAL SKILLS" title="My Skills" />
+      <Head label="Technical skills" title="My Skills" />
       <div className="groups">
         {skillGroups.map((g, i) => (
-          <Reveal key={g.title} delay={i * 0.07} className="group">
+          <Reveal key={g.title} delay={i * 0.07} className="group glow">
             <h3>{g.title}</h3>
-            <div className="pills">{g.items.map((s) => <span key={s}>{s}</span>)}</div>
+            <div className="pills">
+              {g.items.map((s, j) => (
+                <motion.span key={s} initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }} transition={{ delay: 0.25 + j * 0.05, duration: 0.4, ease }}>{s}</motion.span>
+              ))}
+            </div>
           </Reveal>
         ))}
       </div>
@@ -189,20 +190,20 @@ function Skills() {
 function Projects() {
   return (
     <section id="projects" className="section nopad">
-      <div className="pad"><Head label="SELECTED WORK" title="My Projects" /></div>
+      <div className="pad"><Head label="Selected work" title="My Projects" /></div>
       <Row>
         {projects.map((p) => (
-          <article key={p.title} className="pj">
+          <article key={p.title} className="pj glow">
             <div className="pj-img"><Img src={p.image} alt={p.title} /></div>
             <div className="pj-body">
               <div className="chips">{p.tags.map((t) => <span key={t}>{t}</span>)}</div>
               <h3>{p.title}</h3>
               <p>{p.description}</p>
               {p.github && p.github !== '#' && (
-  <div className="pj-links">
-    <a href={p.github} target="_blank" rel="noopener noreferrer" className="more small">GitHub</a>
-  </div>
-)}
+                <div className="pj-links">
+                  <a href={p.github} target="_blank" rel="noopener noreferrer" className="more small">GitHub</a>
+                </div>
+              )}
             </div>
           </article>
         ))}
@@ -211,18 +212,27 @@ function Projects() {
   )
 }
 
+/* Timeline: the glowing line fills as you scroll */
 function Journey() {
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 75%', 'end 60%'] })
+  const fill = useSpring(scrollYProgress, { stiffness: 90, damping: 28 })
   return (
     <section id="journey" className="section">
       <Head label={journeyTitle} title="My Development Journey" />
-      <div className="eps">
+      <div className="tl" ref={ref}>
+        <div className="tl-rail"><motion.i style={{ scaleY: fill }} /></div>
         {journey.map((j, i) => (
-          <Reveal key={j.title} delay={i * 0.08}>
-            <div className="ep-card">
-              <div className={`ep-art t-${tones[i % tones.length]}`}><span>Milestone {i + 1}</span><em>{j.when}</em></div>
-              <div className="ep-body"><h3>{j.title}</h3><p>{j.detail}</p></div>
+          <motion.div key={j.title} className={`tl-item ${i % 2 ? 'right' : ''}`}
+            initial={{ opacity: 0, x: i % 2 ? 40 : -40 }} whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.8, ease }}>
+            <span className="tl-dot" />
+            <div className="tl-card glow">
+              <time>{j.when}</time>
+              <h3>{j.title}</h3>
+              <p>{j.detail}</p>
             </div>
-          </Reveal>
+          </motion.div>
         ))}
       </div>
     </section>
@@ -232,8 +242,8 @@ function Journey() {
 function Resume() {
   return (
     <section id="resume" className="section">
-      <Head label="MY RESUME" title="Resume" />
-      <Reveal className="resume">
+      <Head label="My resume" title="Resume" />
+      <Reveal className="resume glow">
         <div>
           <h3>My qualifications at a glance.</h3>
           <p>Education, experience and skills, ready to download.</p>
@@ -251,11 +261,11 @@ function Contact() {
   return (
     <section id="contact" className="end">
       <Reveal>
-        <p className="label center">	GET IN TOUCH</p>
+        <p className="label center">Get in touch</p>
         <h2 className="tbc">Let's Connect</h2>
         <p className="who">{profile.name}<span>{profile.role}</span></p>
         <div className="cta center">
-          <a href={`mailto:${profile.email}`} className="btn">	Get in Touch</a>
+          <a href={`mailto:${profile.email}`} className="btn">Email me</a>
           {profile.socials.map((s) => <a key={s.label} className="ghost" href={s.url} target="_blank" rel="noopener noreferrer">{s.label}</a>)}
         </div>
         <p className="meta">{profile.location}</p>
@@ -273,12 +283,34 @@ function Contact() {
 }
 
 export default function App() {
+  /* cursor-following glow on cards and the hero */
+  useEffect(() => {
+    const move = (e: MouseEvent) => {
+      const t = e.target as HTMLElement | null
+      const card = t?.closest<HTMLElement>('.glow')
+      if (card) {
+        const r = card.getBoundingClientRect()
+        card.style.setProperty('--x', `${e.clientX - r.left}px`)
+        card.style.setProperty('--y', `${e.clientY - r.top}px`)
+      }
+      const hero = t?.closest<HTMLElement>('.hero')
+      if (hero) {
+        const r = hero.getBoundingClientRect()
+        hero.style.setProperty('--mx', `${e.clientX - r.left}px`)
+        hero.style.setProperty('--my', `${e.clientY - r.top}px`)
+      }
+    }
+    document.addEventListener('mousemove', move)
+    return () => document.removeEventListener('mousemove', move)
+  }, [])
+
   return (
     <>
       <Nav />
       <main>
         <Hero />
         <Explore />
+        <Ticker />
         <Story />
         <Skills />
         <Projects />

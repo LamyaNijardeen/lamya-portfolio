@@ -1,7 +1,7 @@
 
 export const profile = {
   name: 'LAMYA M.N.',
-  initials: 'LAMYA',
+  initials: 'Lamya M.N.',
   role: 'Aspiring Software Engineer',
   tags: ['B.Sc. (Hons) IT & Management', 'Full-Stack Development', 'Java', 'React', 'Sri Lanka'],
   intro: 'Information Technology undergraduate interested in building practical, user-focused software solutions through full-stack development and problem-solving.',

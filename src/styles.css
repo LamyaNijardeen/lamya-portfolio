@@ -3,8 +3,7 @@
 /* ===== 3 COLOURS (60 / 30 / 10) =====
    60% deep navy      (page background)
    30% powder white   (cards and panels)
-   10% burnt orange   (always glowing: gradients, light and shadows, never flat)
-   Everything else is a tint of these three.                                   */
+   10% burnt orange   (always glowing: gradients, light and shadows, never flat)   */
 :root{
   --navy:#0A1128;
   --navy-2:#121D40;
